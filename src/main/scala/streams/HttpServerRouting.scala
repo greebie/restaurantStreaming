@@ -14,8 +14,8 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ThrottleMode
-import akka.stream.scaladsl.Source
-import akka.util.Timeout
+import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
+import akka.util.{ByteString, Timeout}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -62,7 +62,14 @@ object HttpServerRouting {
     implicit val system: ActorSystem[RequestGetter] = ActorSystem(Api.apply, "restaurantStream")
     implicit val executionContext: ExecutionContext = system.executionContext
     val stream: ActorRef[RequestGetter] = system
-    implicit val jsonStreamingSupport : JsonEntityStreamingSupport = EntityStreamingSupport.json()
+    val start = ByteString.empty
+    val sep = ByteString("\n")
+    val end = ByteString.empty
+    implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport
+      .json()
+      .withFramingRenderer(Flow[ByteString].intersperse(start, sep, end))
+    val sink1 = Sink.foreach((x: String) => logger.info(x))
+    val sink2 = Sink.fold[Int, ByteString](0)((acc, _) => acc + 1)
     lazy val route: Route =
       path("orders") {
         get {
@@ -70,10 +77,11 @@ object HttpServerRouting {
             implicit val timeout: Timeout = 5.seconds
             val auth = authenticate(UUID.fromString(key))
             val orders: Source[Order, NotUsed] = Source.fromIterator(() => generate.ordersIt)
-              .limit(10000)
-              .takeWithin(new FiniteDuration(2, SECONDS))
-              .throttle(generate.rnd.nextInt(1000),
-                1.second)
+              //.limit(10000)
+              .takeWithin(new FiniteDuration(15, SECONDS))
+              .throttle(generate.rnd.nextInt(100),
+                3.second)
+
             if (auth.resp == "VALID") {
               val user = api_keys.getUser(UUID.fromString(key))
               logger.info(f"User $user%s accessed the api successfully")
@@ -87,8 +95,8 @@ object HttpServerRouting {
         }
       }
 
-  val bindingFuture = Http().newServerAt("localhost", 8080).bind(route)
-  println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
+    val bindingFuture = Http().newServerAt(ip, port).bind(route)
+    println(s"Server online at http://" + ip + ":" + port.toString + "/\nPress RETURN to stop...")
   StdIn.readLine() // let it run until user presses return
   bindingFuture
     .flatMap(_.unbind()) // trigger unbinding from the port

@@ -1,7 +1,21 @@
-development {
-  package = Streams
-  streams {
-    keys = [sarahs-api-key-UUID, johns-api-key-UUID]
-    names = [sarah, john]
+akka {
+  development {
+    // host ip
+    ip = localhost
+    // desired port
+    port = 8080
+    // package name
+    package = Streams
+    streams {
+      // Maximum size of the stream.
+      maxsize = 100000
+      // keys -- these should be UUID formatted.
+      keys = [sarahs-api-key-UUID, johns-api-key-UUID]
+      // names corresponding to keys, for logging purposes.
+      names = [sarah, john]
+      }
+    }
+  production {
+
   }
 }
