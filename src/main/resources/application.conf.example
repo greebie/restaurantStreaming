@@ -1,0 +1,7 @@
+development {
+  package = Streams
+  streams {
+    keys = [sarahs-api-key-UUID, johns-api-key-UUID]
+    names = [sarah, john]
+  }
+}
