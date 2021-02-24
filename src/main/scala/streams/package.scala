@@ -1,16 +1,13 @@
 import com.typesafe.config.{Config, ConfigFactory}
-import configs.{ConfigReader, Result}
 import configs.syntax._
 import java.util.UUID
-
 import akka.event.slf4j.Logger
-import org.slf4j.Logger
 
 package object streams {
   final val root = "akka"
-  final val env = if (System.getenv("SCALA_ENV") == null) "development" else System.getenv("SCALA_ENV")
+  final val env = if (System.getenv("DEPLOYMENT") == null) "development" else System.getenv("DEPLOYMENT")
   val prefix: String = root + '.' + env
-  val logger: Logger = Logger("Streams package")
+  val logger = Logger("Streams package")
   val empty_keys = ApiKeys(List.empty[ApiKey])
   val conf: Config = ConfigFactory.load()
   val api_keyslist: List[UUID] = conf

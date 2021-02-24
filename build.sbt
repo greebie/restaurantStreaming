@@ -1,11 +1,14 @@
 name := "restaurantStreaming"
 
-version := "0.1"
+version := "0.1.0"
 scalaVersion := "2.13.4"
 ThisBuild / scalaVersion := "2.13.4"
-ThisBuild / organization := "com.example"
+ThisBuild / organization := "deepapp"
 val AkkaVersion = "2.6.12"
 val AkkaHttpVersion = "10.2.3"
+enablePlugins(DockerPlugin)
+enablePlugins(JavaAppPackaging)
+
 
 lazy val streams = (project in file("."))
   .settings(
@@ -28,6 +31,11 @@ lazy val streams = (project in file("."))
     libraryDependencies += "com.typesafe" % "config" % "1.4.1",
     libraryDependencies += "com.github.kxbmap" %% "configs" % "0.5.0",
     libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3",
-    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
+    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+    packageName in Docker := packageName.value,
+    version in Docker := version.value,
+    dockerExposedPorts ++= Seq(8080),
+    dockerEnvVars ++= Map("DEPLOYMENT" -> "production")
+
   )
 

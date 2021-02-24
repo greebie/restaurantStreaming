@@ -117,5 +117,6 @@ fabric.properties
 ### Scala ###
 *.class
 *.log
+.env
 
 # End of https://www.toptal.com/developers/gitignore/api/scala,intellij
